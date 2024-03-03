@@ -11,7 +11,6 @@ import (
 )
 
 func TestDefaultPluginLoader_Load(t *testing.T) {
-	// Mock Plugin to conform to the Plugin interface for successful case
 	mockPlugin := &mocks.MockPlugin{}
 	mockPlugin.On("Execute", mock.Anything).Return(nil)
 
@@ -64,7 +63,7 @@ func TestDefaultPluginLoader_Load(t *testing.T) {
 			mockSymbolLoader := new(mocks.MockSymbolLoader)
 			tc.setupMocks(mockOpener, mockSymbolLoader)
 
-			loader := plugin.NewPluginLoader()
+			loader := plugin.NewDefaultPluginLoader()
 			loader.Opener = mockOpener
 
 			_, err := loader.Load(tc.path)

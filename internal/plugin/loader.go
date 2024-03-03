@@ -49,9 +49,9 @@ type DefaultPluginLoader struct {
 	Opener Opener
 }
 
-// NewPluginLoader creates and returns a new instance of DefaultPluginLoader.
+// NewDefaultPluginLoader creates and returns a new instance of DefaultPluginLoader.
 // It initializes the Opener field with DefaultPluginOpener, the default plugin opener.
-func NewPluginLoader() *DefaultPluginLoader {
+func NewDefaultPluginLoader() *DefaultPluginLoader {
 	return &DefaultPluginLoader{
 		Opener: DefaultPluginOpener{},
 	}
