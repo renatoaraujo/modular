@@ -74,6 +74,12 @@ func (i *Installer) Install(repo, outputPath string) (*Installation, error) {
 	}
 
 	fullOutputPath := filepath.Join(outputPath, pluginName)
+	pluginOutputFile := fullOutputPath + ".so"
+
+	if _, err := i.FS.Stat(pluginOutputFile); err == nil {
+		return nil, fmt.Errorf("plugin %s already exists", pluginName)
+	}
+
 	if err := i.FS.MkdirAll(fullOutputPath); err != nil {
 		return nil, fmt.Errorf("failed to create output directory: %v", err)
 	}
@@ -82,7 +88,6 @@ func (i *Installer) Install(repo, outputPath string) (*Installation, error) {
 		return nil, err
 	}
 
-	pluginOutputFile := filepath.Join(outputPath, pluginName+".so")
 	if err := i.buildPlugin(fullOutputPath, pluginOutputFile); err != nil {
 		return nil, err
 	}
@@ -106,7 +111,7 @@ func (i *Installer) buildPlugin(sourcePath, outputFile string) error {
 func extractPluginName(repo string) string {
 	parts := strings.Split(repo, "/")
 	if len(parts) > 0 {
-		return parts[len(parts)-1] // Return the last part as the name
+		return parts[len(parts)-1]
 	}
 	return ""
 }
