@@ -3,9 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/renatoaraujo/modular/internal/plugin"
 	"github.com/spf13/cobra"
-
-	"renatoaraujo/modular/internal/plugin"
 )
 
 func init() {

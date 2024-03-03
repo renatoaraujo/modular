@@ -1,6 +1,6 @@
 package main
 
-import "renatoaraujo/modular/cmd"
+import "github.com/renatoaraujo/modular/cmd"
 
 func main() {
 	cmd.Execute()

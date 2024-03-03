@@ -1,0 +1,9 @@
+packages:
+  github.com/renatoaraujo/modular/internal/plugin:
+    config:
+      all: true
+      with-expecter: true
+      dir: "{{.InterfaceDirRelative}}/mocks"
+      filename: "{{.InterfaceName}}.go"
+      outpkg: "mocks_test"
+      mockname: "Mock{{.InterfaceName}}"

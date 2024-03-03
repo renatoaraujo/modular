@@ -3,9 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/renatoaraujo/modular/internal/plugin"
 	"github.com/spf13/cobra"
-
-	"renatoaraujo/modular/internal/plugin"
 )
 
 var repository string
@@ -22,7 +21,9 @@ var installCmd = &cobra.Command{
 	Use:   "install [OPTIONS]",
 	Short: "Install plugins from GitHub",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		installation, err := plugin.Install(repository, pluginsPath)
+		installer := plugin.NewInstaller()
+
+		installation, err := installer.Install(repository, pluginsPath)
 		if err != nil {
 			return err
 		}

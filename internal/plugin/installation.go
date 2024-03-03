@@ -3,48 +3,67 @@ package plugin
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"plugin"
-	"regexp"
 	"strings"
 )
 
+// Validator defines an interface for validating and formatting GitHub
+// repository URLs. This abstraction allows for easier testing and extension.
+type Validator interface {
+	ValidateAndFormat(repo string) (string, error)
+}
+
+// Loader defines an interface for loading plugins.
+type Loader interface {
+	Load(path string) (*Installation, error)
+}
+
+// FileSystemHandler defines an interface for interacting with the file system,
+// allowing for easier testing by abstracting actual file system operations.
+type FileSystemHandler interface {
+	MkdirAll(path string) error
+	Remove(name string) error
+	Stat(name string) (os.FileInfo, error)
+}
+
+// Runner defines an interface for running external commands, facilitating
+// testing of functions that require command execution.
+type Runner interface {
+	Run(name string, args ...string) error
+}
+
+// Installation represents a plugin that has been installed. It includes the actual
+// plugin interface and the path to the compiled plugin file.
 type Installation struct {
 	Plugin Plugin
 	Path   string
 }
 
-// validateAndFormatGitHubRepoURL validates and formats the GitHub URL
-func validateAndFormatGitHubRepoURL(repo string) (string, error) {
-	githubURLRegex := regexp.MustCompile(`^https?://github\.com/`)
-	if githubURLRegex.MatchString(repo) {
-		if !regexp.MustCompile(`\.git$`).MatchString(repo) {
-			repo += ".git"
-		}
-		return repo, nil
-	}
-
-	ownerRepoRegex := regexp.MustCompile(`^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`)
-	if ownerRepoRegex.MatchString(repo) {
-		return fmt.Sprintf("https://github.com/%s.git", repo), nil
-	}
-
-	return "", fmt.Errorf("invalid or non-GitHub repository format: %s", repo)
+// Installer facilitates the installation of plugins from GitHub repositories.
+// It uses interfaces for validating URLs, handling file system operations, and
+// running external commands to enhance testability.
+type Installer struct {
+	Validator    Validator
+	FS           FileSystemHandler
+	Runner       Runner
+	PluginLoader Loader
 }
 
-// extractPluginName extracts the plugin name from the repository string
-func extractPluginName(repo string) string {
-	parts := strings.Split(repo, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1] // Return the last part as the name
+// NewInstaller creates a new Installer with default dependencies.
+func NewInstaller() *Installer {
+	return &Installer{
+		Validator:    &DefaultGitHubRepoValidator{},
+		FS:           &DefaultFileSystemHandler{},
+		Runner:       &DefaultRunner{},
+		PluginLoader: &DefaultPluginLoader{},
 	}
-	return ""
 }
 
-// Install Plugin installation from a repository in GitHub
-func Install(repo, outputPath string) (*Installation, error) {
-	repoURL, err := validateAndFormatGitHubRepoURL(repo)
+// Install downloads and compiles a plugin from a GitHub repository, then returns
+// an Installation. It ensures the output directory exists, clones the repository,
+// and compiles the plugin.
+func (i *Installer) Install(repo, outputPath string) (*Installation, error) {
+	repoURL, err := i.Validator.ValidateAndFormat(repo)
 	if err != nil {
 		return nil, err
 	}
@@ -55,55 +74,48 @@ func Install(repo, outputPath string) (*Installation, error) {
 	}
 
 	fullOutputPath := filepath.Join(outputPath, pluginName)
-	if err := exec.Command("mkdir", "-p", fullOutputPath).Run(); err != nil {
+	if err := i.FS.MkdirAll(fullOutputPath); err != nil {
 		return nil, fmt.Errorf("failed to create output directory: %v", err)
 	}
 
-	cmd := exec.Command("git", "clone", "-v", repoURL, fullOutputPath)
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("failed to clone repository: %v", err)
+	if err := i.cloneRepo(repoURL, fullOutputPath); err != nil {
+		return nil, err
 	}
 
 	pluginOutputFile := filepath.Join(outputPath, pluginName+".so")
-	if _, err := os.Stat(pluginOutputFile); err == nil {
-		fmt.Println("Plugin file exists, replacing...")
-		if err := os.Remove(pluginOutputFile); err != nil {
-			return nil, fmt.Errorf("failed to remove existing plugin file: %v", err)
-		}
-	} else if !os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to check plugin file: %v", err)
-	}
-
-	buildCmd := exec.Command("go", "build", "-buildmode=plugin", "-o", pluginOutputFile, ".")
-	buildCmd.Dir = fullOutputPath
-	if err := buildCmd.Run(); err != nil {
-		return nil, fmt.Errorf("failed to compile plugin: %v", err)
+	if err := i.buildPlugin(fullOutputPath, pluginOutputFile); err != nil {
+		return nil, err
 	}
 
 	fmt.Printf("Plugin installed successfully: %s\n", pluginOutputFile)
 
-	return Load(pluginOutputFile)
+	return i.PluginLoader.Load(pluginOutputFile)
 }
 
-// Load dynamically loads a plugin from a compiled .so file and returns an Installation.
-func Load(path string) (*Installation, error) {
-	p, err := plugin.Open(path)
-	if err != nil {
-		return nil, err
-	}
+// cloneRepo clones the repository from repoURL into outputPath.
+func (i *Installer) cloneRepo(repoURL, outputPath string) error {
+	return i.Runner.Run("git", "clone", "-v", repoURL, outputPath)
+}
 
-	symbol, err := p.Lookup("Plugin")
-	if err != nil {
-		return nil, err
-	}
+// buildPlugin compiles the plugin source code into a shared object file at outputFile.
+func (i *Installer) buildPlugin(sourcePath, outputFile string) error {
+	return i.Runner.Run("go", "build", "-buildmode=plugin", "-o", outputFile, sourcePath)
+}
 
-	plug, ok := symbol.(Plugin)
-	if !ok {
-		return nil, fmt.Errorf("failed to cast symbol to Plugin")
+// extractPluginName extracts the plugin name from the repository URL or path.
+func extractPluginName(repo string) string {
+	parts := strings.Split(repo, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1] // Return the last part as the name
 	}
+	return ""
+}
 
-	return &Installation{
-		Plugin: plug,
-		Path:   path,
-	}, nil
+// Remove deletes the plugin file associated with the Installation.
+func (i *Installation) Remove() error {
+	if err := os.Remove(i.Path); err != nil {
+		return fmt.Errorf("failed to remove plugin file: %v", err)
+	}
+	fmt.Println("Plugin removed successfully:", i.Path)
+	return nil
 }
