@@ -5,14 +5,14 @@ import (
 	"regexp"
 )
 
-// DefaultGitHubRepoValidator implements Validator to validate and format
+// DefaultValidator implements Validator to validate and format
 // GitHub repository URLs.
-type DefaultGitHubRepoValidator struct{}
+type DefaultValidator struct{}
 
 // ValidateAndFormat checks if the provided repository string is a valid GitHub URL
 // or shorthand (owner/repo). It returns a formatted GitHub URL or an error if the
 // format is invalid.
-func (v *DefaultGitHubRepoValidator) ValidateAndFormat(repo string) (string, error) {
+func (v *DefaultValidator) ValidateAndFormat(repo string) (string, error) {
 	githubURLRegex := regexp.MustCompile(`^https?://github\.com/`)
 	if githubURLRegex.MatchString(repo) {
 		if !regexp.MustCompile(`\.git$`).MatchString(repo) {

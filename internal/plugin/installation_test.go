@@ -16,7 +16,7 @@ func TestInstaller_Install(t *testing.T) {
 		name            string
 		repo            string
 		outputPath      string
-		mockSetup       func(*mocks.MockValidator, *mocks.MockFileSystemHandler, *mocks.MockRunner, *mocks.MockPluginLoader)
+		mockSetup       func(*mocks.MockValidator, *mocks.MockFileSystemHandler, *mocks.MockRunner, *mocks.MockLoader)
 		expectedErr     string
 		expectedSuccess bool
 	}{
@@ -24,7 +24,7 @@ func TestInstaller_Install(t *testing.T) {
 			name:       "Successful Installation",
 			repo:       "github.com/example/plugin",
 			outputPath: "/plugins",
-			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockPluginLoader) {
+			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader) {
 				v.On("ValidateAndFormat", "github.com/example/plugin").Return("https://github.com/example/plugin", nil)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(nil)
@@ -38,7 +38,7 @@ func TestInstaller_Install(t *testing.T) {
 			name:       "Validation Failure",
 			repo:       "invalid/repo/format",
 			outputPath: "/plugins",
-			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockPluginLoader) {
+			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader) {
 				v.On("ValidateAndFormat", "invalid/repo/format").Return("", fmt.Errorf("invalid repository format"))
 			},
 			expectedErr:     "invalid repository format",
@@ -48,7 +48,7 @@ func TestInstaller_Install(t *testing.T) {
 			name:       "MkdirAll Failure",
 			repo:       "github.com/example/plugin",
 			outputPath: "/plugins",
-			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockPluginLoader) {
+			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader) {
 				v.On("ValidateAndFormat", "github.com/example/plugin").Return("https://github.com/example/plugin", nil)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(fmt.Errorf("failed to create directory"))
 			},
@@ -59,7 +59,7 @@ func TestInstaller_Install(t *testing.T) {
 			name:       "Clone Failure",
 			repo:       "github.com/example/plugin",
 			outputPath: "/plugins",
-			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockPluginLoader) {
+			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader) {
 				v.On("ValidateAndFormat", "github.com/example/plugin").Return("https://github.com/example/plugin", nil)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(fmt.Errorf("git clone failed"))
@@ -71,7 +71,7 @@ func TestInstaller_Install(t *testing.T) {
 			name:       "Build Failure",
 			repo:       "github.com/example/plugin",
 			outputPath: "/plugins",
-			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockPluginLoader) {
+			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader) {
 				v.On("ValidateAndFormat", "github.com/example/plugin").Return("https://github.com/example/plugin", nil)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(nil)
@@ -84,7 +84,7 @@ func TestInstaller_Install(t *testing.T) {
 			name:       "Plugin Load Failure",
 			repo:       "github.com/example/plugin",
 			outputPath: "/plugins",
-			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockPluginLoader) {
+			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader) {
 				v.On("ValidateAndFormat", "github.com/example/plugin").Return("https://github.com/example/plugin", nil)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(nil)
@@ -101,7 +101,7 @@ func TestInstaller_Install(t *testing.T) {
 			mockValidator := new(mocks.MockValidator)
 			mockFSHandler := new(mocks.MockFileSystemHandler)
 			mockRunner := new(mocks.MockRunner)
-			mockPluginLoader := new(mocks.MockPluginLoader)
+			mockPluginLoader := new(mocks.MockLoader)
 
 			installer := plugin.NewInstaller()
 			installer.Validator = mockValidator

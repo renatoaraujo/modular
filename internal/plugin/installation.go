@@ -52,7 +52,7 @@ type Installer struct {
 // NewInstaller creates a new Installer with default dependencies.
 func NewInstaller() *Installer {
 	return &Installer{
-		Validator:    &DefaultGitHubRepoValidator{},
+		Validator:    &DefaultValidator{},
 		FS:           &DefaultFileSystemHandler{},
 		Runner:       &DefaultRunner{},
 		PluginLoader: &DefaultPluginLoader{},

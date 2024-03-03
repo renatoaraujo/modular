@@ -17,7 +17,8 @@ var pluginCmd = &cobra.Command{
 }
 
 func initialisePlugin(file string) error {
-	installation, err := plugin.Load(file)
+	loader := plugin.NewPluginLoader()
+	installation, err := loader.Load(file)
 	if err != nil {
 		return fmt.Errorf("error loading plugin from %s: %w", file, err)
 	}
