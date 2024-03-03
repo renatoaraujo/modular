@@ -9,14 +9,14 @@ import (
 // It requires an instance of Installation to uninstall a specific plugin.
 type Uninstaller struct {
 	Installation *Installation
-	FS           FileSystemHandler // Reuse FileSystemHandler interface for file operations
+	FS           FileSystemHandler
 }
 
 // NewUninstaller creates a new Uninstaller with the given Installation.
-func NewUninstaller(installation *Installation, fs FileSystemHandler) *Uninstaller {
+func NewUninstaller(installation *Installation) *Uninstaller {
 	return &Uninstaller{
 		Installation: installation,
-		FS:           fs,
+		FS:           &DefaultFileSystemHandler{},
 	}
 }
 
