@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/renatoaraujo/modular/internal/plugin"
 	"github.com/spf13/cobra"
 )
@@ -23,12 +22,19 @@ func initialisePlugin(file string) error {
 		return fmt.Errorf("error loading plugin from %s: %w", file, err)
 	}
 
-	cmd := createPluginCommand(installation.Plugin)
+	cmd, err := createPluginCommand(installation.Plugin)
+	if err != nil {
+		return fmt.Errorf("failed to initialise plugin: %w", err)
+	}
 	modularCmd.AddCommand(cmd)
 	return nil
 }
 
-func createPluginCommand(plugin plugin.Plugin) *cobra.Command {
+func createPluginCommand(plugin plugin.Plugin) (*cobra.Command, error) {
+	err := plugin.Initialize()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create plugin command: %w", err)
+	}
 	var cmd = &cobra.Command{
 		Use:   plugin.GetName(),
 		Short: plugin.GetHelp(),
@@ -51,5 +57,5 @@ func createPluginCommand(plugin plugin.Plugin) *cobra.Command {
 		cmd.Flags().String(arg, "", "Description for "+arg)
 	}
 
-	return cmd
+	return cmd, nil
 }

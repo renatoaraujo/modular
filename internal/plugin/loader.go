@@ -63,7 +63,7 @@ func NewDefaultPluginLoader() *DefaultPluginLoader {
 func (l *DefaultPluginLoader) Load(path string) (*Installation, error) {
 	p, err := l.Opener.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open plugin at %s: %w", path, err)
 	}
 
 	symbol, err := p.Lookup("Plugin")

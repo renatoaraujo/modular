@@ -63,7 +63,6 @@ func initConfig() error {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(installPath)
 	viper.AddConfigPath(configPath)
-	viper.AddConfigPath(".")
 
 	return nil
 }
