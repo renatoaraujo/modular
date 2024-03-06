@@ -1,9 +1,11 @@
-name: Tag
+name: PKL Tag
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'codegen/**/*'
 
 permissions:
   contents: write
