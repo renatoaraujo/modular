@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '*'
+      - 'modular*'
 
 jobs:
   prepare-pkl-bin:
