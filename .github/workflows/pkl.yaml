@@ -75,20 +75,3 @@ jobs:
         with:
           name: pkl-package
           path: out/pkl-package/
-
-  release:
-    needs: prepare-pkl-bin
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: pkl-package
-          path: out
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
-          tag_name: ${{ needs.tag.outputs.new_tag }}
-          files: |
-            out/*
