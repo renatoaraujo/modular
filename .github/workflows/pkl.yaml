@@ -32,19 +32,18 @@ jobs:
               break
             fi
           done
-          echo "::set-output name=bump_type::$BUMP_TYPE"
+          echo "BUMP_TYPE=$BUMP_TYPE" >> $GITHUB_ENV
 
       - name: Determine next version
         id: next_version
         run: |
           CURRENT_VERSION=$(git describe --tags --abbrev=0 | sed 's/modular@//')
           echo "Current SemVer version is $CURRENT_VERSION"
-          NEW_VERSION=$(./semver-tool/src/semver bump ${{ steps.analyze_commits.outputs.bump_type }} $CURRENT_VERSION)
-          echo "::set-output name=new_version::$NEW_VERSION"
+          echo "VERSION=$(./semver-tool/src/semver bump $BUMP_TYPE $CURRENT_VERSION)" >> $GITHUB_ENV
 
       - name: Create and push tag
         run: |
-          NEW_TAG="modular@${{ steps.next_version.outputs.new_version }}"
+          echo "NEW_TAG=modular@$VERSION" >> $GITHUB_ENV
           echo "New tag will be $NEW_TAG"
           git config --global user.email 'renatoaraujo@users.noreply.github.com'
           git config --local user.name "GitHub Action"
@@ -52,3 +51,42 @@ jobs:
           git push origin $NEW_TAG
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  prepare-pkl-bin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download PKL CLI Binary
+        run: |
+          curl -L -o pkl.bin https://repo1.maven.org/maven2/org/pkl-lang/pkl-cli-linux-amd64/0.25.1/pkl-cli-linux-amd64-0.25.1.bin
+          chmod +x pkl.bin
+
+      - name: Prepare PKL Project
+        run: |
+          echo "Using version $VERSION for packaging"
+          ./pkl.bin project package codegen/src/ --output-path out/pkl-package/
+
+      - name: Upload PKL package
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkl-package
+          path: out/pkl-package/
+
+  release:
+    needs: prepare-pkl-bin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: pkl-package
+          path: out
+
+      - name: Generate release
+        uses: marvinpinto/action-automatic-releases@v1.2.1
+        with:
+          repo_token: ${{ secrets.RELEASE_TOKEN }}
+          automatic_release_tag: ${{ github.env.NEW_TAG }}
+          prerelease: false
+          files: |
+            out/*
