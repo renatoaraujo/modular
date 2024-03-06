@@ -11,6 +11,9 @@ permissions:
 jobs:
   tag:
     runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.next_version.outputs.new_version }}
+      new_tag: ${{ steps.create_tag.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,7 +23,6 @@ jobs:
         run: git clone https://github.com/fsaintjacques/semver-tool.git
 
       - name: Analyze commit messages
-        id: analyze_commits
         run: |
           BUMP_TYPE="patch"
           LAST_TAG=$(git describe --tags --abbrev=0)
@@ -38,17 +40,18 @@ jobs:
         id: next_version
         run: |
           CURRENT_VERSION=$(git describe --tags --abbrev=0 | sed 's/modular@//')
-          echo "Current SemVer version is $CURRENT_VERSION"
-          echo "VERSION=$(./semver-tool/src/semver bump $BUMP_TYPE $CURRENT_VERSION)" >> $GITHUB_ENV
+          NEW_VERSION=$(./semver-tool/src/semver bump $BUMP_TYPE $CURRENT_VERSION)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Create and push tag
+        id: create_tag
         run: |
-          echo "NEW_TAG=modular@$VERSION" >> $GITHUB_ENV
-          echo "New tag will be $NEW_TAG"
+          NEW_TAG="modular@${{ steps.next_version.outputs.new_version }}"
           git config --global user.email 'renatoaraujo@users.noreply.github.com'
           git config --local user.name "GitHub Action"
           git tag $NEW_TAG
           git push origin $NEW_TAG
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,6 +68,7 @@ jobs:
 
       - name: Prepare PKL Project
         run: |
+          VERSION="${{ needs.tag.outputs.new_version }}"
           echo "Using version $VERSION for packaging"
           ./pkl.bin project package codegen/src/ --output-path out/pkl-package/
 
@@ -87,7 +91,7 @@ jobs:
         uses: marvinpinto/action-automatic-releases@v1.2.1
         with:
           repo_token: ${{ secrets.RELEASE_TOKEN }}
-          automatic_release_tag: ${{ github.env.NEW_TAG }}
+          automatic_release_tag: ${{ needs.tag.outputs.new_tag }}
           prerelease: false
           files: |
             out/*
