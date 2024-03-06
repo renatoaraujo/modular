@@ -1,4 +1,4 @@
-name: PKL Tag
+name: PKL
 
 on:
   push:
@@ -68,9 +68,7 @@ jobs:
 
       - name: Prepare PKL Project
         run: |
-          VERSION="${{ needs.tag.outputs.new_version }}"
-          echo "Using version $VERSION for packaging"
-          ./pkl.bin project package codegen/src/ --output-path out/pkl-package/
+          ./pkl.bin project package codegen/src/ --output-path out/pkl-package/ -e VERSION=${{ needs.tag.outputs.new_version }}
 
       - name: Upload PKL package
         uses: actions/upload-artifact@v4
