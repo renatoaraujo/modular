@@ -22,15 +22,9 @@ jobs:
       - name: Determine next version
         id: next_version
         run: |
-          run: |
-          # Assuming you determine the current version, stripping any prefix
-          # Example: extract version from 'modular@0.1.2' format
           CURRENT_VERSION=$(git describe --tags --abbrev=0 | sed 's/modular@//')
           echo "Current SemVer version is $CURRENT_VERSION"
-
-          # Bump version using semver-tool
           NEW_VERSION=$(./semver-tool/src/semver bump patch $CURRENT_VERSION)
-          echo "New SemVer compliant version is $NEW_VERSION"
           echo "::set-output name=new_version::$NEW_VERSION"
 
       - name: Create and push tag
