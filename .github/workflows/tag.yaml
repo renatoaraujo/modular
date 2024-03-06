@@ -9,21 +9,35 @@ permissions:
   contents: write
 
 jobs:
-  bump:
+  tag:
     runs-on: ubuntu-latest
-    outputs:
-      new_tag: ${{ steps.version.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: '0'
 
-      - name: Bump version and push tag
-        id: version
-        uses: anothrNick/github-tag-action@1.67.0
+      - name: Clone semver-tool
+        run: git clone https://github.com/fsaintjacques/semver-tool.git
+
+      - name: Determine next version
+        id: next_version
+        run: |
+          # Assuming you have a way to determine the current version
+          CURRENT_VERSION=$(git describe --tags --abbrev=0)
+          echo "Current version is $CURRENT_VERSION"
+          
+          # Example: Increment patch version
+          NEW_VERSION=$(./semver-tool/src/semver bump patch $CURRENT_VERSION)
+          echo "New version is $NEW_VERSION"
+          echo "::set-output name=new_version::$NEW_VERSION"
+
+      - name: Create and push tag
+        run: |
+          NEW_TAG="modular@${{ steps.next_version.outputs.new_version }}"
+          echo "New tag will be $NEW_TAG"
+          git config --global user.email 'renatoaraujo@users.noreply.github.com'
+          git config --local user.name "GitHub Action"
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          MAJOR_STRING_TOKEN: "major:"
-          MINOR_STRING_TOKEN: "minor:"
-          PATCH_STRING_TOKEN: "patch:"
-          WITH_V: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
