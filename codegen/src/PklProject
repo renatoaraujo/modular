@@ -4,7 +4,7 @@ local repo = "github.com/renatoaraujo/modular"
 
 package {
   name = "modular"
-  baseUri = "package://pkg.pkl-lang.org/github.com/reatoaraujo/modular/\(name)"
+  baseUri = "package://pkg.pkl-lang.org/github.com/renatoaraujo/modular/\(name)"
   packageZipUrl = "https://\(repo)/releases/download/\(name)@\(version)/\(name)@\(version).zip"
   version = read("env:VERSION").replaceFirst("\(name)@", "")
   authors {
