@@ -1,0 +1,7 @@
+module modular
+
+abstract class PluginMetadata {
+  name: String
+  description: String
+  args: Map<String, String>
+}
