@@ -1,0 +1,33 @@
+name: pull_request
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sanitycheck:
+    name: Sanity check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: latest
+          cache: false
+
+      - name: Run vet
+        run: |
+          go vet ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          skip-cache: true
+
+      - name: Run tests
+        run: go test -v ./...

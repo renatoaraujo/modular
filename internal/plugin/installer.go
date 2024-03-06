@@ -29,7 +29,7 @@ type FileSystemHandler interface {
 // Runner defines an interface for running external commands, facilitating
 // testing of functions that require command execution.
 type Runner interface {
-	On(path string)
+	At(path string)
 	Run(name string, args ...string) error
 }
 
@@ -98,7 +98,7 @@ func (i *Installer) cloneRepo(repoURL, outputPath string) error {
 
 // buildPlugin compiles the plugin source code into a shared object file at outputFile.
 func (i *Installer) buildPlugin(sourcePath, outputFile string) error {
-	i.Runner.On(sourcePath)
+	i.Runner.At(sourcePath)
 	return i.Runner.Run("go", "build", "-buildmode=plugin", "-o", outputFile, sourcePath)
 }
 

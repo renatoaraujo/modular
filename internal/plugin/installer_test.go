@@ -70,6 +70,7 @@ func TestInstaller_Install(t *testing.T) {
 			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader, repo string) {
 				commonSetup(v, fs, repo, false)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
+				r.On("At", mock.AnythingOfType("string")).Once()
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "go", "build", "-buildmode=plugin", "-o", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(fmt.Errorf("go build failed"))
 			},
@@ -83,6 +84,7 @@ func TestInstaller_Install(t *testing.T) {
 			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader, repo string) {
 				commonSetup(v, fs, repo, false)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
+				r.On("At", mock.AnythingOfType("string")).Once()
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "go", "build", "-buildmode=plugin", "-o", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
 				pl.On("Load", mock.AnythingOfType("string")).Return(nil, fmt.Errorf("failed to load plugin"))
@@ -97,6 +99,7 @@ func TestInstaller_Install(t *testing.T) {
 			mockSetup: func(v *mocks.MockValidator, fs *mocks.MockFileSystemHandler, r *mocks.MockRunner, pl *mocks.MockLoader, repo string) {
 				commonSetup(v, fs, repo, false)
 				fs.On("MkdirAll", mock.AnythingOfType("string")).Return(nil)
+				r.On("At", mock.AnythingOfType("string")).Once()
 				r.On("Run", "git", "clone", "-v", "https://github.com/example/plugin", mock.AnythingOfType("string")).Return(nil)
 				r.On("Run", "go", "build", "-buildmode=plugin", "-o", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
 				pl.On("Load", mock.AnythingOfType("string")).Return(&plugin.Installation{}, nil)

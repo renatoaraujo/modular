@@ -7,8 +7,8 @@ type DefaultRunner struct {
 	Dir string
 }
 
-// On defines where the command should be executed.
-func (cr *DefaultRunner) On(path string) {
+// At defines where the command should be executed.
+func (cr *DefaultRunner) At(path string) {
 	cr.Dir = path
 }
 
