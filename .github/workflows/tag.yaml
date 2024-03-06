@@ -19,12 +19,27 @@ jobs:
       - name: Clone semver-tool
         run: git clone https://github.com/fsaintjacques/semver-tool.git
 
+      - name: Analyze commit messages
+        id: analyze_commits
+        run: |
+          BUMP_TYPE="patch"
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          git log ${LAST_TAG}..HEAD --oneline | while read line ; do
+            if [[ "$line" == *"feat:"* ]]; then
+              BUMP_TYPE="minor"
+            elif [[ "$line" == *"BREAKING CHANGE:"* ]]; then
+              BUMP_TYPE="major"
+              break
+            fi
+          done
+          echo "::set-output name=bump_type::$BUMP_TYPE"
+
       - name: Determine next version
         id: next_version
         run: |
           CURRENT_VERSION=$(git describe --tags --abbrev=0 | sed 's/modular@//')
           echo "Current SemVer version is $CURRENT_VERSION"
-          NEW_VERSION=$(./semver-tool/src/semver bump patch $CURRENT_VERSION)
+          NEW_VERSION=$(./semver-tool/src/semver bump ${{ steps.analyze_commits.outputs.bump_type }} $CURRENT_VERSION)
           echo "::set-output name=new_version::$NEW_VERSION"
 
       - name: Create and push tag
