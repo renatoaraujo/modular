@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var name string
-
 func init() {
 	pluginCmd.AddCommand(uninstallCmd)
 }
