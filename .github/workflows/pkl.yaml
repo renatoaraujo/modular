@@ -53,6 +53,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   prepare-pkl-bin:
+    needs: tag
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
