@@ -55,7 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  prepare-pkl-bin:
+  artifact:
     needs: tag
     runs-on: ubuntu-latest
     steps:
