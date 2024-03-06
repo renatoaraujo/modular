@@ -85,11 +85,10 @@ jobs:
           name: pkl-package
           path: out
 
-      - name: Generate release
-        uses: marvinpinto/action-automatic-releases@v1.2.1
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          repo_token: ${{ secrets.RELEASE_TOKEN }}
-          automatic_release_tag: ${{ needs.tag.outputs.new_tag }}
-          prerelease: false
+          token: ${{ secrets.RELEASE_TOKEN }}
+          tag_name: ${{ needs.tag.outputs.new_tag }}
           files: |
             out/*
